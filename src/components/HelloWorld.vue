@@ -28,11 +28,11 @@
                   v-bind:key="iteration.id"
                 >
                   <v-flex xs6>
-                    <v-text-field label="Cubo" v-model="iteration.text" type="number"></v-text-field>
+                    <v-text-field label="Cubo" v-model="iteration.text" type="text"></v-text-field>
                   </v-flex>
                   <v-flex xs2>
                     <div class="text-center">
-                      <v-btn>Crear Cubo</v-btn>
+                      <v-btn @click="CreateCube(iteration)">Crear Cubo</v-btn>
                     </div>
                   </v-flex>
                 </v-row>
@@ -46,8 +46,10 @@
 </template>
 
 <script>
+import Service from '../service'
 export default {
   data: () => ({
+    service: new Service('Cube'),
     valid: false,
     model: {
       testCases: 0,
@@ -70,11 +72,23 @@ export default {
         this.model.iterations.push({
           id: `i${i}`,
           text: "",
-          operations: 0,
-          lenght: 0
+          m: 0,
+          n: 0,
+          value:[]
         });
-      }
-      
+      }      
+    },
+    async CreateCube(iteration){      
+       try {
+            let result = await this.axios.post(`cube/create`, {"Parameter": iteration.text});
+            let data = result.data.data;
+            iteration.m = data.m;
+            iteration.n = data.n;
+            iteration.value = data.value;
+            console.log(this.model.iterations);
+        } catch (e) {
+            console.log(e)
+        }      
     }
   }
 };
