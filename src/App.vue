@@ -4,7 +4,7 @@
       <v-toolbar-title class="headline text-uppercase">
         <span>Julian Estrada Jaramillo</span>
         <v-spacer></v-spacer>
-        <span class="font-weight-light"></span>
+        <span class="font-weight-light">Prueba tecnica</span>
       </v-toolbar-title>
       
      

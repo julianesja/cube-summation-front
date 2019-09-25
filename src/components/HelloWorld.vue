@@ -27,13 +27,32 @@
                   v-for="iteration in model.iterations"
                   v-bind:key="iteration.id"
                 >
-                  <v-flex xs6>
-                    <v-text-field label="Cubo" v-model="iteration.text" type="text"></v-text-field>
-                  </v-flex>
-                  <v-flex xs2>
-                    <div class="text-center">
-                      <v-btn @click="CreateCube(iteration)">Crear Cubo</v-btn>
-                    </div>
+                  <v-flex xs8>
+                    <v-container>
+                      <v-row>
+                        <v-flex xs8>
+                          <v-text-field label="Cubo" v-model="iteration.text" type="text"></v-text-field>
+                        </v-flex>
+                        <v-flex xs4>
+                          <div class="text-center">
+                            <v-btn @click="CreateCube(iteration)">Crear Cubo</v-btn>
+                          </div>
+                        </v-flex>
+                      </v-row>
+                      <v-row v-for="operation in iteration.operations" v-bind:key="operation.id">
+                        <v-flex xs8>
+                          <v-text-field label="Operación" v-model="operation.text" type="text"></v-text-field>
+                        </v-flex>
+                        <v-flex xs4>
+                          <div class="text-center">
+                            <v-btn @click="CreateQuery(operation, iteration)">Ejecutar</v-btn>
+                          </div>
+                        </v-flex>
+                        <v-flex xs12 v-if="operation.result!= ''">
+                          <span>{{operation.result}}</span>
+                        </v-flex>
+                      </v-row>
+                    </v-container>
                   </v-flex>
                 </v-row>
               </v-container>
@@ -46,10 +65,9 @@
 </template>
 
 <script>
-import Service from '../service'
+import message from '../plugins/message'
 export default {
   data: () => ({
-    service: new Service('Cube'),
     valid: false,
     model: {
       testCases: 0,
@@ -74,21 +92,48 @@ export default {
           text: "",
           m: 0,
           n: 0,
-          value:[]
+          value: [],
+          operations: []
         });
-      }      
+      }
     },
-    async CreateCube(iteration){      
-       try {
-            let result = await this.axios.post(`cube/create`, {"Parameter": iteration.text});
-            let data = result.data.data;
-            iteration.m = data.m;
-            iteration.n = data.n;
-            iteration.value = data.value;
-            console.log(this.model.iterations);
-        } catch (e) {
-            console.log(e)
-        }      
+    async CreateCube(iteration) {
+      try {
+        let result = await this.axios.post(`cube/create`, {
+          Parameter: iteration.text
+        });
+        let data = result.data.data;
+        iteration.m = data.m;
+        iteration.n = data.n;
+        iteration.value = data.value;
+        for (let i = 0; i < iteration.m; i++) {
+          iteration.operations.push({
+            id: `o${i}`,
+            text: "",
+            result: ""
+          });
+        }        
+      } catch (e) {
+        
+        message.simpleMessage(e.response.data.message, message.messageType.error );
+      }
+    },
+    async CreateQuery(operation, iteration) {
+      try{       
+        let result = await this.axios.post('cube/query',{
+                                                          value: iteration.value
+                                                          , n:iteration.n
+                                                          , m:iteration.m
+                                                          , query:operation.text 
+                                                        }
+                                          );
+        let data = result.data.data;
+        iteration.value = data.value;
+        operation.result = result.data.message;
+
+      }catch(e){
+        message.simpleMessage(e.response.data.message, message.messageType.error );
+      }
     }
   }
 };
